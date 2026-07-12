@@ -1,0 +1,1411 @@
+openapi: 3.1.0
+info:
+  title: Trading Studio API
+  version: 1.0.0
+  summary: Trading Studio 对外与内部接口文档
+  description: >
+    面向股票资讯、事件中心、自选股和 AI 助手的 API 定义。
+    外部 API 使用 Bearer Token 鉴权，内部 API 使用服务签名鉴权。
+servers:
+  - url: https://api.example.com
+    description: Public API
+  - url: https://internal.example.com
+    description: Internal API
+tags:
+  - name: Auth
+  - name: User
+  - name: Securities
+  - name: News
+  - name: Events
+  - name: Watchlists
+  - name: AI
+  - name: Internal
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: 用户注册
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: 用户登出
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 登出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: 刷新会话
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/v1/user:
+    get:
+      tags: [User]
+      summary: 获取当前用户信息
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 返回用户信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+  /api/v1/user/profile:
+    patch:
+      tags: [User]
+      summary: 更新用户资料
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/user/quotas:
+    get:
+      tags: [User]
+      summary: 获取当前用户配额
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 返回配额信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Quota'
+  /api/v1/securities:
+    get:
+      tags: [Securities]
+      summary: 股票列表
+      parameters:
+        - $ref: '#/components/parameters/PageNo'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: market
+          schema:
+            type: string
+            default: CN
+        - in: query
+          name: sectorId
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 返回股票列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSecurityResponse'
+  /api/v1/securities/search:
+    get:
+      tags: [Securities]
+      summary: 股票搜索
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 返回搜索结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSecurityResponse'
+  /api/v1/securities/{symbol}:
+    get:
+      tags: [Securities]
+      summary: 股票详情
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+      responses:
+        '200':
+          description: 返回股票详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SecurityDetail'
+  /api/v1/securities/{symbol}/quote:
+    get:
+      tags: [Securities]
+      summary: 股票快照行情
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+      responses:
+        '200':
+          description: 返回行情快照
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MarketQuote'
+  /api/v1/securities/{symbol}/daily-bars:
+    get:
+      tags: [Securities]
+      summary: 股票日线数据
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: adjust
+          schema:
+            type: string
+            enum: [none, qfq, hfq]
+            default: none
+      responses:
+        '200':
+          description: 返回日线列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DailyBar'
+  /api/v1/securities/{symbol}/financials:
+    get:
+      tags: [Securities]
+      summary: 财务指标摘要
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+      responses:
+        '200':
+          description: 返回财务摘要
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/securities/{symbol}/money-flow:
+    get:
+      tags: [Securities]
+      summary: 资金流数据
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+      responses:
+        '200':
+          description: 返回资金流数据
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/securities/{symbol}/news:
+    get:
+      tags: [Securities]
+      summary: 股票相关新闻
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+        - $ref: '#/components/parameters/PageNo'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 返回新闻列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsResponse'
+  /api/v1/securities/{symbol}/announcements:
+    get:
+      tags: [Securities]
+      summary: 股票公告列表
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+        - $ref: '#/components/parameters/PageNo'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 返回公告列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAnnouncementResponse'
+  /api/v1/securities/{symbol}/events:
+    get:
+      tags: [Securities]
+      summary: 股票事件列表
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+        - $ref: '#/components/parameters/PageNo'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 返回事件列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEventResponse'
+  /api/v1/securities/{symbol}/ai-summary:
+    get:
+      tags: [Securities]
+      summary: 股票 AI 摘要
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Symbol'
+      responses:
+        '200':
+          description: 返回 AI 摘要
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AIAnalysisResult'
+  /api/v1/news:
+    get:
+      tags: [News]
+      summary: 新闻列表
+      parameters:
+        - $ref: '#/components/parameters/PageNo'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: securitySymbol
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 返回新闻列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsResponse'
+  /api/v1/news/hot:
+    get:
+      tags: [News]
+      summary: 热门新闻
+      responses:
+        '200':
+          description: 返回热门新闻
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsResponse'
+  /api/v1/news/flash:
+    get:
+      tags: [News]
+      summary: 7x24 快讯
+      responses:
+        '200':
+          description: 返回快讯流
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsResponse'
+  /api/v1/news/{id}:
+    get:
+      tags: [News]
+      summary: 新闻详情
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回新闻详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/NewsArticle'
+  /api/v1/news/{id}/related:
+    get:
+      tags: [News]
+      summary: 相关新闻
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回相关新闻
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsResponse'
+  /api/v1/news/{id}/favorite:
+    post:
+      tags: [News]
+      summary: 收藏新闻
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 收藏成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+    delete:
+      tags: [News]
+      summary: 取消收藏新闻
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/events:
+    get:
+      tags: [Events]
+      summary: 事件列表
+      parameters:
+        - $ref: '#/components/parameters/PageNo'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: eventType
+          schema:
+            type: string
+        - in: query
+          name: importance
+          schema:
+            type: string
+            enum: [S, A, B, C, D]
+      responses:
+        '200':
+          description: 返回事件列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEventResponse'
+  /api/v1/events/{id}:
+    get:
+      tags: [Events]
+      summary: 事件详情
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回事件详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Event'
+  /api/v1/events/{id}/impact-chain:
+    get:
+      tags: [Events]
+      summary: 事件影响链
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回影响链
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/events/{id}/market-reaction:
+    get:
+      tags: [Events]
+      summary: 事件市场反应
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回市场反应
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/watchlists:
+    get:
+      tags: [Watchlists]
+      summary: 自选股分组列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 返回分组列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WatchlistGroup'
+    post:
+      tags: [Watchlists]
+      summary: 创建自选股分组
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWatchlistRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/watchlists/{id}:
+    patch:
+      tags: [Watchlists]
+      summary: 更新自选股分组
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWatchlistRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+    delete:
+      tags: [Watchlists]
+      summary: 删除自选股分组
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/watchlists/{id}/items:
+    post:
+      tags: [Watchlists]
+      summary: 添加自选股
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddWatchlistItemRequest'
+      responses:
+        '200':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/watchlists/{id}/items/{securityId}:
+    delete:
+      tags: [Watchlists]
+      summary: 删除自选股
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+        - in: path
+          name: securityId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/watchlists/{id}/feed:
+    get:
+      tags: [Watchlists]
+      summary: 自选股动态流
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回动态流
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/watchlists/{id}/briefing:
+    get:
+      tags: [Watchlists]
+      summary: 自选股简报
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回简报
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/ai/chat:
+    post:
+      tags: [AI]
+      summary: 通用市场问答
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIChatRequest'
+      responses:
+        '202':
+          description: 已接收任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /api/v1/ai/analyze-stock:
+    post:
+      tags: [AI]
+      summary: 个股分析
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeStockRequest'
+      responses:
+        '202':
+          description: 已接收任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /api/v1/ai/analyze-news:
+    post:
+      tags: [AI]
+      summary: 新闻影响分析
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeNewsRequest'
+      responses:
+        '202':
+          description: 已接收任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /api/v1/ai/analyze-announcement:
+    post:
+      tags: [AI]
+      summary: 公告解读
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeAnnouncementRequest'
+      responses:
+        '202':
+          description: 已接收任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /api/v1/ai/compare-stocks:
+    post:
+      tags: [AI]
+      summary: 股票对比
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareStocksRequest'
+      responses:
+        '202':
+          description: 已接收任务
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /api/v1/ai/tasks/{uuid}:
+    get:
+      tags: [AI]
+      summary: 获取 AI 任务结果
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 返回任务状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AITask'
+  /api/v1/ai/conversations:
+    get:
+      tags: [AI]
+      summary: 会话列表
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 返回会话列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/ai/conversations/{id}:
+    get:
+      tags: [AI]
+      summary: 会话详情
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '200':
+          description: 返回会话详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /api/v1/ai/messages/{id}/feedback:
+    post:
+      tags: [AI]
+      summary: AI 消息反馈
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: string
+                  enum: [like, dislike]
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /internal/v1/ai/tasks:
+    post:
+      tags: [Internal]
+      summary: 创建内部 AI 任务
+      security:
+        - internalSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InternalAITaskRequest'
+      responses:
+        '202':
+          description: 已接收
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /internal/v1/ai/tasks/{uuid}:
+    get:
+      tags: [Internal]
+      summary: 查询内部 AI 任务
+      security:
+        - internalSignature: []
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 返回任务详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+  /internal/v1/data/sync/securities:
+    post:
+      tags: [Internal]
+      summary: 同步证券主数据
+      security:
+        - internalSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataSyncRequest'
+      responses:
+        '202':
+          description: 已接收
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /internal/v1/data/sync/quotes:
+    post:
+      tags: [Internal]
+      summary: 同步行情快照
+      security:
+        - internalSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataSyncRequest'
+      responses:
+        '202':
+          description: 已接收
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /internal/v1/news/collect:
+    post:
+      tags: [Internal]
+      summary: 触发新闻采集
+      security:
+        - internalSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectNewsRequest'
+      responses:
+        '202':
+          description: 已接收
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /internal/v1/events/rebuild:
+    post:
+      tags: [Internal]
+      summary: 重建事件索引
+      security:
+        - internalSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate:
+                  type: string
+                  format: date
+                endDate:
+                  type: string
+                  format: date
+                securitySymbol:
+                  type: string
+      responses:
+        '202':
+          description: 已接收
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedTaskResponse'
+  /internal/v1/health/providers:
+    get:
+      tags: [Internal]
+      summary: Provider 健康检查
+      security:
+        - internalSignature: []
+      responses:
+        '200':
+          description: 返回健康状态
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+    internalSignature:
+      type: apiKey
+      in: header
+      name: X-Signature
+  parameters:
+    PageNo:
+      in: query
+      name: pageNo
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    PageSize:
+      in: query
+      name: pageSize
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+    Symbol:
+      in: path
+      name: symbol
+      required: true
+      schema:
+        type: string
+    RecordId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+  schemas:
+    StandardResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: success
+        data:
+          type: object
+        meta:
+          $ref: '#/components/schemas/Meta'
+    AcceptedTaskResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: accepted
+        data:
+          type: object
+          properties:
+            task_id:
+              type: string
+            status:
+              type: string
+              example: pending
+            poll_url:
+              type: string
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    RegisterRequest:
+      type: object
+      required: [name, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        mobile:
+          type: string
+        password:
+          type: string
+          minLength: 8
+    LoginRequest:
+      type: object
+      required: [account, password]
+      properties:
+        account:
+          type: string
+        password:
+          type: string
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/StandardResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                token:
+                  type: string
+                token_type:
+                  type: string
+                  example: Bearer
+                user:
+                  $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        mobile:
+          type: string
+        membership_level:
+          type: string
+        status:
+          type: string
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        avatar:
+          type: string
+        bio:
+          type: string
+    Quota:
+      type: object
+      properties:
+        quota_key:
+          type: string
+        quota_period:
+          type: string
+        total_amount:
+          type: integer
+        used_amount:
+          type: integer
+        reset_at:
+          type: string
+          format: date-time
+    Security:
+      type: object
+      properties:
+        id:
+          type: integer
+        canonical_symbol:
+          type: string
+        symbol:
+          type: string
+        exchange:
+          type: string
+        name:
+          type: string
+        short_name:
+          type: string
+        security_type:
+          type: string
+    SecurityDetail:
+      allOf:
+        - $ref: '#/components/schemas/Security'
+        - type: object
+          properties:
+            sectors:
+              type: array
+              items:
+                type: string
+            latest_quote:
+              $ref: '#/components/schemas/MarketQuote'
+    MarketQuote:
+      type: object
+      properties:
+        quote_time:
+          type: string
+          format: date-time
+        last_price:
+          type: number
+        pct_change:
+          type: number
+        volume:
+          type: number
+        amount:
+          type: number
+    DailyBar:
+      type: object
+      properties:
+        trade_date:
+          type: string
+          format: date
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+        amount:
+          type: number
+    NewsArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        summary:
+          type: string
+        canonical_url:
+          type: string
+        category:
+          type: string
+        importance_level:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        related_symbols:
+          type: array
+          items:
+            type: string
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        announcement_type:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        importance_level:
+          type: string
+        risk_level:
+          type: string
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        event_type:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        importance_level:
+          type: string
+        sentiment:
+          type: string
+        confidence:
+          type: number
+    WatchlistGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sort_order:
+          type: integer
+        items_count:
+          type: integer
+    AIAnalysisResult:
+      type: object
+      properties:
+        summary:
+          type: string
+        key_points:
+          type: array
+          items:
+            type: string
+        evidence:
+          type: array
+          items:
+            type: object
+        uncertainties:
+          type: array
+          items:
+            type: string
+        risk_disclaimer:
+          type: string
+    AITask:
+      type: object
+      properties:
+        uuid:
+          type: string
+        task_type:
+          type: string
+        status:
+          type: string
+        result:
+          $ref: '#/components/schemas/AIAnalysisResult'
+    CreateWatchlistRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+    UpdateWatchlistRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        sort_order:
+          type: integer
+    AddWatchlistItemRequest:
+      type: object
+      required: [security_id]
+      properties:
+        security_id:
+          type: integer
+    AIChatRequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+        conversation_id:
+          type: integer
+    AnalyzeStockRequest:
+      type: object
+      required: [symbol, question]
+      properties:
+        symbol:
+          type: string
+        question:
+          type: string
+    AnalyzeNewsRequest:
+      type: object
+      required: [news_id]
+      properties:
+        news_id:
+          type: integer
+        question:
+          type: string
+    AnalyzeAnnouncementRequest:
+      type: object
+      required: [announcement_id]
+      properties:
+        announcement_id:
+          type: integer
+        question:
+          type: string
+    CompareStocksRequest:
+      type: object
+      required: [left_symbol, right_symbol]
+      properties:
+        left_symbol:
+          type: string
+        right_symbol:
+          type: string
+        focus:
+          type: string
+    InternalAITaskRequest:
+      type: object
+      required: [task_type, payload]
+      properties:
+        task_type:
+          type: string
+        payload:
+          type: object
+        callback_url:
+          type: string
+    DataSyncRequest:
+      type: object
+      properties:
+        provider:
+          type: string
+        target_date:
+          type: string
+          format: date
+        symbols:
+          type: array
+          items:
+            type: string
+    CollectNewsRequest:
+      type: object
+      properties:
+        source_key:
+          type: string
+        force:
+          type: boolean
+          default: false
+    PaginatedSecurityResponse:
+      allOf:
+        - $ref: '#/components/schemas/StandardResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Security'
+    PaginatedNewsResponse:
+      allOf:
+        - $ref: '#/components/schemas/StandardResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/NewsArticle'
+    PaginatedAnnouncementResponse:
+      allOf:
+        - $ref: '#/components/schemas/StandardResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Announcement'
+    PaginatedEventResponse:
+      allOf:
+        - $ref: '#/components/schemas/StandardResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Event'
