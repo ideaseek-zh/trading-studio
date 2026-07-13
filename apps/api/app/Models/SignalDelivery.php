@@ -15,10 +15,13 @@ class SignalDelivery extends Model
         'signal_subscription_id',
         'delivery_channel',
         'delivery_status',
+        'batch_key',
+        'suppression_reason',
         'attempts',
         'response_status',
         'response_body',
         'payload',
+        'dispatch_context',
         'last_attempted_at',
         'next_retry_at',
         'delivered_at',
@@ -26,6 +29,7 @@ class SignalDelivery extends Model
 
     protected $casts = [
         'payload' => 'array',
+        'dispatch_context' => 'array',
         'last_attempted_at' => 'datetime',
         'next_retry_at' => 'datetime',
         'delivered_at' => 'datetime',

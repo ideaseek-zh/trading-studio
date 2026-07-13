@@ -445,6 +445,9 @@ watch([sortBy, sortDirection], async () => {
           <button type="button" class="button button--solid" @click="refreshBoard">
             刷新信号看板
           </button>
+          <NuxtLink class="button button--ghost" to="/signals/execution-center">
+            打开执行中心
+          </NuxtLink>
           <NuxtLink class="button button--ghost" to="/">
             返回平台总览
           </NuxtLink>

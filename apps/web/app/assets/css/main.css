@@ -238,6 +238,10 @@ a {
   padding-bottom: 88px;
 }
 
+.page--execution {
+  padding-bottom: 88px;
+}
+
 .hero--signals {
   grid-template-columns: 1.15fr 1fr;
 }
@@ -279,7 +283,8 @@ a {
 .filter-actions,
 .heatmap-card__footer,
 .compact-list__item,
-.pager {
+.pager,
+.compact-actions {
   display: flex;
   gap: 12px;
 }
@@ -303,7 +308,8 @@ a {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   min-height: 44px;
   padding: 0 14px;
   border: 1px solid rgba(15, 90, 70, 0.16);
@@ -311,6 +317,12 @@ a {
   background: rgba(255, 255, 255, 0.82);
   color: var(--text);
   font: inherit;
+}
+
+.field textarea {
+  min-height: 140px;
+  padding-block: 12px;
+  resize: vertical;
 }
 
 .toggle-field {
@@ -372,6 +384,26 @@ a {
   margin-top: 22px;
 }
 
+.operations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.operations-grid--editor {
+  align-items: start;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field--wide {
+  grid-column: 1 / -1;
+}
+
 .board-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -423,6 +455,12 @@ a {
   margin: 0 0 6px;
   font-size: 0.98rem;
   font-weight: 700;
+}
+
+.compact-actions {
+  align-items: center;
+  justify-content: end;
+  flex-wrap: wrap;
 }
 
 .empty-inline {
@@ -555,6 +593,39 @@ a {
   color: #9e4f17;
 }
 
+.signal-pill--delivery-queued {
+  background: rgba(15, 90, 70, 0.12);
+  color: #0f5a46;
+}
+
+.signal-pill--delivery-retrying,
+.signal-pill--delivery-failed {
+  background: rgba(161, 47, 31, 0.14);
+  color: #8f2618;
+}
+
+.signal-pill--delivery-success {
+  background: rgba(15, 118, 76, 0.12);
+  color: #0f764c;
+}
+
+.signal-pill--delivery-partial_success {
+  background: rgba(200, 106, 40, 0.18);
+  color: #9e4f17;
+}
+
+.signal-pill--delivery-suppressed,
+.signal-pill--delivery-merged {
+  background: rgba(70, 83, 78, 0.12);
+  color: #46534e;
+}
+
+.signal-pill--delivery-skipped,
+.signal-pill--delivery-sending {
+  background: rgba(70, 83, 78, 0.12);
+  color: #46534e;
+}
+
 .metric-stack,
 .meta-stack,
 .signal-cell {
@@ -594,6 +665,24 @@ a {
   color: var(--muted);
 }
 
+.button--small {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.85rem;
+}
+
+.response-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.execution-hint {
+  margin-top: 14px;
+  padding: 0;
+}
+
 .button:disabled,
 .chip:disabled {
   opacity: 0.55;
@@ -606,7 +695,9 @@ a {
   .module-grid,
   .security-grid,
   .board-grid,
-  .heatmap-grid {
+  .heatmap-grid,
+  .operations-grid,
+  .editor-grid {
     grid-template-columns: 1fr;
   }
 
