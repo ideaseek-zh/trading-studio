@@ -448,6 +448,9 @@ watch([sortBy, sortDirection], async () => {
           <NuxtLink class="button button--ghost" to="/signals/execution-center">
             打开执行中心
           </NuxtLink>
+          <NuxtLink class="button button--ghost" to="/strategy-workspace">
+            策略工作台
+          </NuxtLink>
           <NuxtLink class="button button--ghost" to="/">
             返回平台总览
           </NuxtLink>

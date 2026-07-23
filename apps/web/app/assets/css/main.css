@@ -441,6 +441,11 @@ a {
   gap: 12px;
 }
 
+.compact-list--flush {
+  margin-top: 14px;
+  gap: 6px;
+}
+
 .compact-list__item {
   align-items: center;
   justify-content: space-between;
@@ -626,6 +631,26 @@ a {
   color: #46534e;
 }
 
+.workspace-pill--risk {
+  background: rgba(161, 47, 31, 0.15);
+  color: #8f2618;
+}
+
+.workspace-pill--opportunity {
+  background: rgba(15, 118, 76, 0.12);
+  color: #0f764c;
+}
+
+.workspace-pill--watch {
+  background: rgba(200, 106, 40, 0.18);
+  color: #9e4f17;
+}
+
+.workspace-pill--quiet {
+  background: rgba(70, 83, 78, 0.12);
+  color: #46534e;
+}
+
 .metric-stack,
 .meta-stack,
 .signal-cell {
@@ -676,6 +701,20 @@ a {
   overflow: hidden;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+}
+
+.response-preview--log {
+  display: block;
+  max-height: 360px;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(8, 28, 23, 0.9);
+  color: #f4f1e8;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .execution-hint {

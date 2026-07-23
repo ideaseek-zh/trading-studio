@@ -37,4 +37,11 @@ return [
         'timeout' => (int) env('INTELLIGENCE_TIMEOUT', 30),
     ],
 
+    'ops' => [
+        'auto_radar_enabled' => env('OPS_AUTO_RADAR_ENABLED', true),
+        'radar_interval_minutes' => (int) env('OPS_RADAR_REFRESH_INTERVAL_MINUTES', 10),
+        'radar_symbols' => env('OPS_RADAR_SYMBOLS', '300059,000001,002311,300687,601127'),
+        'radar_limit' => (int) env('OPS_RADAR_LIMIT', 50),
+    ],
+
 ];

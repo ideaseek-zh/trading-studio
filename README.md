@@ -88,6 +88,21 @@ cp .env.example .env
 ./scripts/run-web.sh
 ```
 
+终端 4：
+
+```bash
+./scripts/run-scheduler.sh
+```
+
+调度器会默认每 10 分钟自动执行一次“一键刷新热点雷达”，串联行情、热点新闻、个股公告、事件链、信号生成和解释刷新。可通过根目录 `.env` 或 `apps/api/.env` 调整：
+
+```bash
+OPS_AUTO_RADAR_ENABLED=true
+OPS_RADAR_REFRESH_INTERVAL_MINUTES=10
+OPS_RADAR_SYMBOLS=300059,000001,002311,300687,601127
+OPS_RADAR_LIMIT=50
+```
+
 ## Docker Compose 安装
 
 ```bash

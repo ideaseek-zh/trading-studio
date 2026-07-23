@@ -7,15 +7,20 @@ use App\Http\Controllers\Api\V1\IndexController;
 use App\Http\Controllers\Api\V1\NewsController;
 use App\Http\Controllers\Api\V1\NotificationChannelCredentialController;
 use App\Http\Controllers\Api\V1\NotificationTemplateController;
+use App\Http\Controllers\Api\V1\OpsTaskController;
 use App\Http\Controllers\Api\V1\SecurityController;
 use App\Http\Controllers\Api\V1\SignalDeliveryController;
 use App\Http\Controllers\Api\V1\SignalOperationController;
 use App\Http\Controllers\Api\V1\SignalController;
 use App\Http\Controllers\Api\V1\SignalSubscriptionController;
+use App\Http\Controllers\Api\V1\StrategyWorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::get('/health', HealthController::class);
+    Route::get('/ops/tasks', [OpsTaskController::class, 'index']);
+    Route::get('/ops/task-runs', [OpsTaskController::class, 'runs']);
+    Route::post('/ops/tasks/{taskKey}/run', [OpsTaskController::class, 'run']);
     Route::get('/securities', [SecurityController::class, 'index']);
     Route::get('/securities/search', [SecurityController::class, 'search']);
     Route::get('/securities/{security:canonical_symbol}', [SecurityController::class, 'show']);
@@ -32,6 +37,17 @@ Route::prefix('v1')->group(function (): void {
     Route::get('/signals', [SignalController::class, 'index']);
     Route::get('/signals/dashboard', [SignalController::class, 'dashboard']);
     Route::get('/signals/{signal}', [SignalController::class, 'show']);
+    Route::get('/strategy-workspaces/recommendations', [StrategyWorkspaceController::class, 'recommendations']);
+    Route::get('/strategy-workspaces', [StrategyWorkspaceController::class, 'index']);
+    Route::post('/strategy-workspaces', [StrategyWorkspaceController::class, 'store']);
+    Route::get('/strategy-workspaces/{workspace}', [StrategyWorkspaceController::class, 'show']);
+    Route::patch('/strategy-workspaces/{workspace}', [StrategyWorkspaceController::class, 'update']);
+    Route::delete('/strategy-workspaces/{workspace}', [StrategyWorkspaceController::class, 'destroy']);
+    Route::get('/strategy-workspaces/{workspace}/overview', [StrategyWorkspaceController::class, 'overview']);
+    Route::get('/strategy-workspaces/{workspace}/recommendations', [StrategyWorkspaceController::class, 'recommendations']);
+    Route::post('/strategy-workspaces/{workspace}/items', [StrategyWorkspaceController::class, 'storeItem']);
+    Route::patch('/strategy-workspaces/{workspace}/items/{item}', [StrategyWorkspaceController::class, 'updateItem']);
+    Route::delete('/strategy-workspaces/{workspace}/items/{item}', [StrategyWorkspaceController::class, 'destroyItem']);
     Route::get('/notification-templates', [NotificationTemplateController::class, 'index']);
     Route::post('/notification-templates', [NotificationTemplateController::class, 'store']);
     Route::get('/notification-templates/{template}', [NotificationTemplateController::class, 'show']);

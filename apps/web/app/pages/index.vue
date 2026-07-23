@@ -151,6 +151,16 @@ const modules = [
     title: '模块 04 · 事件评分与信号引擎',
     summary: '已将事件链转换为交易信号，并接入解释面板、基线评估、综合排序和订阅优先级能力。',
   },
+  {
+    id: 'module-05',
+    title: '模块 05 · 策略工作台',
+    summary: '已接入自选池、真实持仓、行情盈亏、信号触发和订阅过滤同步，让交易者可以按自己的组合日常盯盘。',
+  },
+  {
+    id: 'module-06',
+    title: '模块 06 · 易用性与运行控制台',
+    summary: '已开始把行情、新闻、公告、事件链和信号命令封装为可点击的数据任务中心，降低本地运行门槛。',
+  },
 ]
 </script>
 
@@ -165,7 +175,9 @@ const modules = [
         </p>
         <div class="hero__actions">
           <a class="button button--solid" href="http://127.0.0.1:8000/api/v1/health" target="_blank" rel="noreferrer">查看 API 健康</a>
+          <NuxtLink class="button button--ghost" to="/ops">数据任务中心</NuxtLink>
           <NuxtLink class="button button--ghost" to="/signals">打开信号看板</NuxtLink>
+          <NuxtLink class="button button--ghost" to="/strategy-workspace">策略工作台</NuxtLink>
           <a class="button button--ghost" href="http://127.0.0.1:8080/docs" target="_blank" rel="noreferrer">查看 Intelligence 接口</a>
         </div>
       </div>
